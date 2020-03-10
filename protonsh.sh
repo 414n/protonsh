@@ -64,6 +64,13 @@ get_menu_choice()
 			;;
 	esac
 }
+
+# $1: message
+print_blink()
+{
+	echo -e "\e[5;93m$1\e[m"
+}
+
 echo "List of proton prefixes found in Steam:"
 I=0
 for PREFIX in ~/.steam/steam/SteamApps/compatdata/*
@@ -108,8 +115,11 @@ then
 	override_p SteamGameId "$appID"
 	override_p SteamAppId "$appID"
 	override_p STEAM_COMPAT_CLIENT_INSTALL_PATH "$HOME/.local/share/Steam"
-	override_p PS1 '\[Proton\]>'
+	#override_p PS1 "\[$appName@$versionName\]$ "
+	override_p PS1 "\[\e[1;36m${appName}\[\e[0m\n\_\[\e[1;32m${versionName}\[\e[0m \$ "
 	override_p PATH "${protonVersion}/dist/bin:${protonVersion}:${PATH}"
+	print_blink "Type 'exit' or CTRL+D to close this shell"
+	(cd "$wineprefix" && exec "$shell" --noprofile --norc )
 else
 	die "Not a valid Proton version choice! ($CHOICE)"
 fi

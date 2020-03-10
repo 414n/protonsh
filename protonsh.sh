@@ -23,6 +23,14 @@ print_override()
 	printf '\t%s\n' "$1=$2"
 }
 
+# $1: variable name
+# $2: overridden value
+override_p()
+{
+	print_override "$1" "$2"
+	export "$1"="$2"
+}
+
 echo "List of proton prefixes found in Steam:"
 I=0
 for PREFIX in ~/.steam/steam/SteamApps/compatdata/*
@@ -54,26 +62,17 @@ read -r CHOICE
 if [ "$CHOICE" -le "$I" ]
 then
 	protonVersion="${PROTON_VERSIONS[$CHOICE]}"
-	winearch="$(awk -F= '/^#arch/ {print $2}' $wineprefix/system.reg)"
+	winearch="$(awk -F= '/^#arch/ {print $2}' "$wineprefix/system.reg")"
 	echo "Chosen: $(get_appName "$appID") with $protonVersion"
 	echo "Launching shell $shell inside $wineprefix using"
-	print_override WINEPREFIX "$wineprefix"
-	print_override WINEARCH "$winearch"
-	print_override LD_LIBRARY_PATH "$LD_LIBRARY_PATH:$protonVersion/lib:$protonVersion/lib64"
-	print_override STEAM_COMPAT_DATA_PATH "$wineprefix"
-	print_override SteamGameId "$appID"
-	print_override SteamAppId "$appID"
-	print_override STEAM_COMPAT_CLIENT_INSTALL_PATH "$HOME/.local/share/Steam"
-	print_override 'wine' "$protonVersion/proton/dist/bin/wine"
-	print_override 'proton' "$protonVersion/proton"
-	export WINEPREFIX="$wineprefix"
-	export WINEARCH="${winearch:-win32}"
-	export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$protonVersion/lib:$protonVersion/lib64"
-	export STEAM_COMPAT_DATA_PATH="$wineprefix"
-	export SteamGameId="$appID"
-	export SteamAppId="$appID"
-	export STEAM_COMPAT_CLIENT_INSTALL_PATH="$HOME/.local/share/Steam"
-	export PS1='\[Proton\]>'
-	export PATH="${protonVersion}/dist/bin:${protonVersion}:${PATH}"
+	override_p WINEPREFIX "$wineprefix"
+	override_p WINEARCH "${winearch:-win32}"
+	override_p LD_LIBRARY_PATH "$LD_LIBRARY_PATH:$protonVersion/lib:$protonVersion/lib64"
+	override_p STEAM_COMPAT_DATA_PATH "$wineprefix"
+	override_p SteamGameId "$appID"
+	override_p SteamAppId "$appID"
+	override_p STEAM_COMPAT_CLIENT_INSTALL_PATH "$HOME/.local/share/Steam"
+	override_p PS1 '\[Proton\]>'
+	override_p PATH "${protonVersion}/dist/bin:${protonVersion}:${PATH}"
 	(cd "$wineprefix" && exec "$shell" -i )
 fi

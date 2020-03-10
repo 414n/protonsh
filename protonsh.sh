@@ -3,6 +3,14 @@
 shell="${SHELL:-/bin/bash}"
 declare -a PREFIXES
 
+# $1: message
+# $2: exit code (default: 1)
+die()
+{
+	echo "$1"
+	exit "${2:-1}"
+}
+
 # $1: appID
 # $2: fieldName
 get_appmanifest_field()
@@ -31,6 +39,31 @@ override_p()
 	export "$1"="$2"
 }
 
+# $1: user input
+# $2: choice min
+# $3: choice max
+get_menu_choice()
+{
+	local input min max
+	input="$1"
+	min="$2"
+	max="$3"
+	unset menu_choice
+	case $1 in
+		''|*[!0-9]*)
+			return 1
+			;;
+		*)
+			if [ "$input" -ge "$min" ] && [ "$input" -le "$max" ]
+			then
+				export menu_choice="$input"
+				return 0
+			else
+				return 1
+			fi
+			;;
+	esac
+}
 echo "List of proton prefixes found in Steam:"
 I=0
 for PREFIX in ~/.steam/steam/SteamApps/compatdata/*
@@ -43,11 +76,14 @@ do
 done
 echo -n "Choice? "
 read -r CHOICE
-if [ "$CHOICE" -le "$I" ]
+if get_menu_choice "$CHOICE" 0 "$I"
 then
 	wineprefix="${PREFIXES[$CHOICE]}/pfx"
 	appID="${PREFIXES[$CHOICE]##*/}"
+else
+	die "Not a valid prefix choice! ($CHOICE)"
 fi
+
 echo "List of proton versions installed in Steam:"
 I=0
 for PROTON_VERSION in ~/.steam/steam/SteamApps/common/Proton*
@@ -59,7 +95,7 @@ do
 done
 echo -n "Choice? "
 read -r CHOICE
-if [ "$CHOICE" -le "$I" ]
+if get_menu_choice "$CHOICE" 0 "$I"
 then
 	protonVersion="${PROTON_VERSIONS[$CHOICE]}"
 	winearch="$(awk -F= '/^#arch/ {print $2}' "$wineprefix/system.reg")"
@@ -74,5 +110,6 @@ then
 	override_p STEAM_COMPAT_CLIENT_INSTALL_PATH "$HOME/.local/share/Steam"
 	override_p PS1 '\[Proton\]>'
 	override_p PATH "${protonVersion}/dist/bin:${protonVersion}:${PATH}"
-	(cd "$wineprefix" && exec "$shell" -i )
+else
+	die "Not a valid Proton version choice! ($CHOICE)"
 fi

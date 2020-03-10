@@ -1,6 +1,6 @@
 #!/bin/bash
 
-shell="${SHELL:-/bin/sh}"
+shell="${SHELL:-/bin/bash}"
 declare -a PREFIXES
 
 # $1: appID

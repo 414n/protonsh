@@ -85,8 +85,9 @@ echo -n "Choice? "
 read -r CHOICE
 if get_menu_choice "$CHOICE" 0 "$I"
 then
-	wineprefix="${PREFIXES[$CHOICE]}/pfx"
-	appID="${PREFIXES[$CHOICE]##*/}"
+	wineprefix="${PREFIXES[$menu_choice]}/pfx"
+	appID="${PREFIXES[$menu_choice]##*/}"
+	appName="$(get_appName "$appID")"
 else
 	die "Not a valid prefix choice! ($CHOICE)"
 fi
@@ -104,9 +105,9 @@ echo -n "Choice? "
 read -r CHOICE
 if get_menu_choice "$CHOICE" 0 "$I"
 then
-	protonVersion="${PROTON_VERSIONS[$CHOICE]}"
+	protonVersion="${PROTON_VERSIONS[$menu_choice]}"
 	winearch="$(awk -F= '/^#arch/ {print $2}' "$wineprefix/system.reg")"
-	echo "Chosen: $(get_appName "$appID") with $protonVersion"
+	echo "Chosen: $appName with $protonVersion"
 	echo "Launching shell $shell inside $wineprefix using"
 	override_p WINEPREFIX "$wineprefix"
 	override_p WINEARCH "${winearch:-win32}"

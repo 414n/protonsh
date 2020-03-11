@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ -r ~/.config/protonsh ]
+then
+	source ~/.config/protonsh
+fi
+
 shell="${SHELL:-/bin/bash}"
 steamdir="${STEAMDIR:-$HOME/.steam/steam/SteamApps}"
 declare -a PREFIXES

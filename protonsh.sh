@@ -1,6 +1,12 @@
 #!/bin/bash
 
+if [ -r ~/.config/protonsh ]
+then
+	source ~/.config/protonsh
+fi
+
 shell="${SHELL:-/bin/bash}"
+STEAM_APPS_DIR="${STEAM_APPS_DIR:-$HOME/.steam/steam/SteamApps}"
 declare -a PREFIXES
 
 # $1: message
@@ -15,7 +21,7 @@ die()
 # $2: fieldName
 get_appmanifest_field()
 {
-	grep -m1 "$2" ~/.steam/steam/SteamApps/"appmanifest_${1}.acf" | sed -ne 's/^.*"'$2'"[[:space:]]*"\([[:print:]]*\)"[[:space:]]*$/\1/p'
+	grep -m1 "$2" "$STEAM_APPS_DIR"/"appmanifest_${1}.acf" | sed -ne 's/^.*"'$2'"[[:space:]]*"\([[:print:]]*\)"[[:space:]]*$/\1/p'
 }
 
 # $1: appID
@@ -73,7 +79,7 @@ print_blink()
 
 echo "List of proton prefixes found in Steam:"
 I=0
-for PREFIX in ~/.steam/steam/SteamApps/compatdata/*
+for PREFIX in "$STEAM_APPS_DIR"/compatdata/*
 do
 	PREFIXES[$I]="$PREFIX"
 	appID="${PREFIX##*/}"
@@ -94,7 +100,7 @@ fi
 
 echo "List of proton versions installed in Steam:"
 I=0
-for PROTON_VERSION in ~/.steam/steam/SteamApps/common/Proton*
+for PROTON_VERSION in "$STEAM_APPS_DIR"/common/Proton*
 do
 	PROTON_VERSIONS[$I]="$PROTON_VERSION"
 	versionName="${PROTON_VERSION##*/}"

@@ -21,7 +21,7 @@ die()
 # $2: fieldName
 get_appmanifest_field()
 {
-	grep -m1 "$2" "$STEAM_APPS_DIR"/"appmanifest_${1}.acf" | sed -ne 's/^.*"'$2'"[[:space:]]*"\([[:print:]]*\)"[[:space:]]*$/\1/p'
+	grep -m1 "$2" "$STEAM_APPS_DIR/appmanifest_${1}.acf" | sed -ne 's/^.*"'$2'"[[:space:]]*"\([[:print:]]*\)"[[:space:]]*$/\1/p'
 }
 
 # $1: appID

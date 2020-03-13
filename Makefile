@@ -12,7 +12,9 @@ help:
 	@echo "PREFIX: what prefix to use for the binary installation directory (default: /usr)"
 	@echo "DESTDIR: destination directory for package creation"
 
-install: $(SOURCE)
+install: $(TARGET_BINARY)
+
+$(TARGET_BINARY): $(SOURCE)
 	install -Dm0755 $(SOURCE) $(TARGET_BINARY)
 
 uninstall:

@@ -117,7 +117,7 @@ then
 	echo "Launching shell $shell inside $wineprefix using"
 	override_p WINEPREFIX "$wineprefix"
 	override_p WINEARCH "${winearch:-win32}"
-	override_p LD_LIBRARY_PATH "$LD_LIBRARY_PATH:$protonVersion/lib:$protonVersion/lib64"
+	override_p LD_LIBRARY_PATH "$LD_LIBRARY_PATH:$protonVersion/dist/lib:$protonVersion/dist/lib64"
 	override_p STEAM_COMPAT_DATA_PATH "$wineprefix"
 	override_p SteamGameId "$appID"
 	override_p SteamAppId "$appID"

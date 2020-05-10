@@ -98,15 +98,21 @@ else
 	die "Not a valid prefix choice! ($CHOICE)"
 fi
 
+shopt -s nullglob
 echo "List of proton versions installed in Steam:"
 I=0
-for PROTON_VERSION in "$STEAM_APPS_DIR"/common/Proton*
+for PROTON_VERSION in \
+	"$STEAM_APPS_DIR"/common/Proton* \
+	/usr/share/steam/compatibilitytools.d/* \
+	/usr/local/share/steam/compatibilitytools.d/* \
+	"$HOME"/.steam/root/compatibilitytools.d/*
 do
 	PROTON_VERSIONS[$I]="$PROTON_VERSION"
 	versionName="${PROTON_VERSION##*/}"
 	echo "$I) $versionName"
 	I=$((I+1))
 done
+shopt -u nullglob
 echo -n "Choice? "
 read -r CHOICE
 if get_menu_choice "$CHOICE" 0 "$I"

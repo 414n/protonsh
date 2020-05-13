@@ -91,11 +91,11 @@ search_compat_tools()
 	then
 		declare -a extraLocs appendLocs
 		IFS=':' read -r -a extraLocs <<< "$STEAM_EXTRA_COMPAT_TOOLS_PATHS"
-		for ((i=0; i<${#extraLocs[*]}; i++))
+		for loc in "${extraLocs[@]}"
 		do
-			if compgen -G "${extraLocs[i]}/*"
+			if compgen -G "$loc/*"
 			then
-				appendLocs+=( "${extraLocs[i]}"/* )
+				appendLocs+=( "$loc"/* )
 			fi
 		done
 		if [ "${#appendLocs[*]}" -gt 0 ]

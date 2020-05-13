@@ -46,8 +46,8 @@ override_p()
 }
 
 # $1: user input
-# $2: choice min
-# $3: choice max
+# $2: choice min (inclusive)
+# $3: choice max (exclusive)
 get_menu_choice()
 {
 	local input min max
@@ -60,7 +60,7 @@ get_menu_choice()
 			return 1
 			;;
 		*)
-			if [ "$input" -ge "$min" ] && [ "$input" -le "$max" ]
+			if [ "$input" -ge "$min" ] && [ "$input" -lt "$max" ]
 			then
 				export menu_choice="$input"
 				return 0

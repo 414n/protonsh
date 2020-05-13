@@ -46,8 +46,8 @@ override_p()
 }
 
 # $1: user input
-# $2: choice min
-# $3: choice max
+# $2: choice min (inclusive)
+# $3: choice max (exclusive)
 get_menu_choice()
 {
 	local input min max
@@ -60,7 +60,7 @@ get_menu_choice()
 			return 1
 			;;
 		*)
-			if [ "$input" -ge "$min" ] && [ "$input" -le "$max" ]
+			if [ "$input" -ge "$min" ] && [ "$input" -lt "$max" ]
 			then
 				export menu_choice="$input"
 				return 0
@@ -75,6 +75,35 @@ get_menu_choice()
 print_blink()
 {
 	echo -e "\e[5;93m$1\e[m"
+}
+
+search_compat_tools()
+{
+	shopt -s nullglob
+
+	compatibilityToolsLoc=(\
+		"$STEAM_APPS_DIR"/common/Proton* \
+		/usr/share/steam/compatibilitytools.d/* \
+		/usr/local/share/steam/compatibilitytools.d/* \
+		"$HOME"/.steam/root/compatibilitytools.d/*
+	)
+	if [ "$STEAM_EXTRA_COMPAT_TOOLS_PATHS" ]
+	then
+		declare -a extraLocs appendLocs
+		IFS=':' read -r -a extraLocs <<< "$STEAM_EXTRA_COMPAT_TOOLS_PATHS"
+		for loc in "${extraLocs[@]}"
+		do
+			if compgen -G "$loc/*"
+			then
+				appendLocs+=( "$loc"/* )
+			fi
+		done
+		if [ "${#appendLocs[*]}" -gt 0 ]
+		then
+			compatibilityToolsLoc=("${compatibilityToolsLoc[@]}" "${appendLocs[@]}")
+		fi
+	fi
+	shopt -u nullglob
 }
 
 echo "List of proton prefixes found in Steam:"
@@ -98,9 +127,11 @@ else
 	die "Not a valid prefix choice! ($CHOICE)"
 fi
 
+search_compat_tools
+
 echo "List of proton versions installed in Steam:"
 I=0
-for PROTON_VERSION in "$STEAM_APPS_DIR"/common/Proton*
+for PROTON_VERSION in "${compatibilityToolsLoc[@]}"
 do
 	PROTON_VERSIONS[$I]="$PROTON_VERSION"
 	versionName="${PROTON_VERSION##*/}"

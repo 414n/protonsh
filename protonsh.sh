@@ -77,6 +77,35 @@ print_blink()
 	echo -e "\e[5;93m$1\e[m"
 }
 
+search_compat_tools()
+{
+	shopt -s nullglob
+
+	compatibilityToolsLoc=(\
+		"$STEAM_APPS_DIR"/common/Proton* \
+		/usr/share/steam/compatibilitytools.d/* \
+		/usr/local/share/steam/compatibilitytools.d/* \
+		"$HOME"/.steam/root/compatibilitytools.d/*
+	)
+	if [ "$STEAM_EXTRA_COMPAT_TOOLS_PATHS" ]
+	then
+		declare -a extraLocs appendLocs
+		IFS=':' read -r -a extraLocs <<< "$STEAM_EXTRA_COMPAT_TOOLS_PATHS"
+		for ((i=0; i<${#extraLocs[*]}; i++))
+		do
+			if compgen -G "${extraLocs[i]}/*"
+			then
+				appendLocs+=( "${extraLocs[i]}"/* )
+			fi
+		done
+		if [ "${#appendLocs[*]}" -gt 0 ]
+		then
+			compatibilityToolsLoc=("${compatibilityToolsLoc[@]}" "${appendLocs[@]}")
+		fi
+	fi
+	shopt -u nullglob
+}
+
 echo "List of proton prefixes found in Steam:"
 I=0
 for PREFIX in "$STEAM_APPS_DIR"/compatdata/*
@@ -98,21 +127,17 @@ else
 	die "Not a valid prefix choice! ($CHOICE)"
 fi
 
-shopt -s nullglob
+search_compat_tools
+
 echo "List of proton versions installed in Steam:"
 I=0
-for PROTON_VERSION in \
-	"$STEAM_APPS_DIR"/common/Proton* \
-	/usr/share/steam/compatibilitytools.d/* \
-	/usr/local/share/steam/compatibilitytools.d/* \
-	"$HOME"/.steam/root/compatibilitytools.d/*
+for PROTON_VERSION in "${compatibilityToolsLoc[@]}"
 do
 	PROTON_VERSIONS[$I]="$PROTON_VERSION"
 	versionName="${PROTON_VERSION##*/}"
 	echo "$I) $versionName"
 	I=$((I+1))
 done
-shopt -u nullglob
 echo -n "Choice? "
 read -r CHOICE
 if get_menu_choice "$CHOICE" 0 "$I"

@@ -6,7 +6,6 @@ then
 fi
 
 shell="${SHELL:-/bin/bash}"
-STEAM_APPS_DIR="${STEAM_APPS_DIR:-$HOME/.steam/steam/SteamApps}"
 declare -a PREFIXES
 
 # $1: message
@@ -15,6 +14,21 @@ die()
 {
 	echo "$1"
 	exit "${2:-1}"
+}
+
+find_steamapps_dir()
+{
+	local result
+	if [ -d "$HOME/.steam" ] && [ -h "$HOME/.steam/steam" ]
+	then
+		if result="$(find "$HOME/.steam/steam/" -maxdepth 1 -type d -iname steamapps)" && [ "$result" ]
+		then
+			echo "Autodetected SteamApps dir in $result"
+			export STEAM_APPS_DIR="$result"
+		fi
+	else
+		die "Could not determine SteamApps dir (not found under ~/.steam/steam/). Please override STEAM_APPS_DIR before launching the script"
+	fi
 }
 
 # $1: appID
@@ -105,6 +119,11 @@ search_compat_tools()
 	fi
 	shopt -u nullglob
 }
+
+if [ -z "$STEAM_APPS_DIR" ]
+then
+	find_steamapps_dir
+fi
 
 echo "List of proton prefixes found in Steam:"
 I=0

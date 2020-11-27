@@ -16,18 +16,32 @@ die()
 	exit "${2:-1}"
 }
 
+# Search for the SteamApps directory on the system in well-known locations,
+# such as ~/.steam/steam/.
+# If a match is found, the STEAM_APPS_DIR environment variable is set,
+# otherwise the script exits with an error.
+# If the STEAM_APPS_DIR is already set to a value, this function will exit with
+# an error.
 find_steamapps_dir()
 {
 	local result
+	if [ "$STEAM_APPS_DIR" ]
+	then
+		die "STEAM_APPS_DIR is already set to $STEAM_APPS_DIR! You should not be here!" 1
+	fi
+
 	if [ -d "$HOME/.steam" ] && [ -h "$HOME/.steam/steam" ]
 	then
-		if result="$(find "$HOME/.steam/steam/" -maxdepth 1 -type d -iname steamapps)" && [ "$result" ]
-		then
-			echo "Autodetected SteamApps dir in $result"
-			export STEAM_APPS_DIR="$result"
-		fi
+		result="$(find "$HOME/.steam/steam/" -maxdepth 1 -type d -iname steamapps)"
+	fi
+	#TODO: search in other well-known but currently unknown locations
+
+	if [ "$result" ]
+	then
+		echo "Autodetected SteamApps dir in $result"
+		export STEAM_APPS_DIR="$result"
 	else
-		die "Could not determine SteamApps dir (not found under ~/.steam/steam/). Please override STEAM_APPS_DIR before launching the script"
+		die "Could not determine SteamApps dir (not found under ~/.steam/steam/). Please override STEAM_APPS_DIR before launching the script" 2
 	fi
 }
 

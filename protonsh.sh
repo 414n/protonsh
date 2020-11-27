@@ -137,6 +137,14 @@ search_compat_tools()
 if [ -z "$STEAM_APPS_DIR" ]
 then
 	find_steamapps_dir
+else
+	echo "Using environment override $STEAM_APPS_DIR as SteamApps dir"
+fi
+
+# Sanity check: at this point, $STEAM_APPS_DIR should point to a valid dir
+if [ ! -d "$STEAM_APPS_DIR" ]
+then
+	die "SteamApps dir $STEAM_APPS_DIR is not a directory!" 3
 fi
 
 echo "List of proton prefixes found in Steam:"

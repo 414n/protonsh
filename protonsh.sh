@@ -45,11 +45,22 @@ find_steamapps_dir()
 	fi
 }
 
+# Parse a field from the manifest file of the given application ID.
+# Arguments:
 # $1: appID
 # $2: fieldName
+# Returns:
+# 0 - all ok
+# 1 - if manifest file does not exist
 get_appmanifest_field()
 {
-	grep -m1 "$2" "$STEAM_APPS_DIR/appmanifest_${1}.acf" | sed -ne 's/^.*"'$2'"[[:space:]]*"\([[:print:]]*\)"[[:space:]]*$/\1/p'
+	local manifest="$STEAM_APPS_DIR/appmanifest_${1}.acf"
+	if [ -e "$manifest" ]
+	then
+		grep -m1 "$2" "$manifest" | sed -ne 's/^.*"'$2'"[[:space:]]*"\([[:print:]]*\)"[[:space:]]*$/\1/p'
+	else
+		return 1
+	fi
 }
 
 # $1: appID
@@ -157,14 +168,23 @@ fi
 
 echo "List of proton prefixes found in Steam:"
 I=0
+declare -a removed_apps
 for PREFIX in "$STEAM_APPS_COMPATDATA_DIR"/*
 do
 	PREFIXES[$I]="$PREFIX"
 	appID="${PREFIX##*/}"
-	appName="$(get_appName "$appID")"
-	printf "%s) %s\t%s\n" "$I" "$appID" "$appName"
-	I=$((I+1))
+	if appName="$(get_appName "$appID")"
+	then
+		printf "%s) %s\t%s\n" "$I" "$appID" "$appName"
+		I=$((I+1))
+	else
+		removed_apps+=( "$appID" )
+	fi
 done
+if [ "${#removed_apps[*]}" -gt 1 ]
+then
+	echo "warn: error parsing manifest for several appIDs (${removed_apps[*]}). Did you uninstall them?"
+fi
 echo -n "Choice? "
 read -r CHOICE
 if get_menu_choice "$CHOICE" 0 "$I"

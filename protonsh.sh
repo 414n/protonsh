@@ -148,14 +148,16 @@ then
 fi
 
 # ... and it should undoubtly contain a compatdata dir...
-if [ ! -d "$STEAM_APPS_DIR/compatdata" ]
+if temp="$(find "$STEAM_APPS_DIR" -type d -maxdepth 1 -iname compatdata)"
 then
+	STEAM_APPS_COMPATDATA_DIR="$temp"
+else
 	die "No compatdata dir found inside $STEAM_APPS_DIR!" 4
 fi
 
 echo "List of proton prefixes found in Steam:"
 I=0
-for PREFIX in "$STEAM_APPS_DIR"/compatdata/*
+for PREFIX in "$STEAM_APPS_COMPATDATA_DIR"/*
 do
 	PREFIXES[$I]="$PREFIX"
 	appID="${PREFIX##*/}"

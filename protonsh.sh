@@ -203,7 +203,7 @@ then
 	override_p SteamAppId "$appID"
 	override_p STEAM_COMPAT_CLIENT_INSTALL_PATH "$HOME/.local/share/Steam"
 	#override_p PS1 "\[$appName@$versionName\]$ "
-	override_p PS1 "\[\e[1;36m${appName}\[\e[0m\n\_\[\e[1;32m${versionName}\[\e[0m \$ "
+	override_p PS1 "\[\033[38;5;14m\]${appName} ($appID)\[$(tput sgr0)\]\n\\_\[$(tput sgr0)\]\[\033[38;5;10m\]${versionName}\[$(tput sgr0)\] \\$ \[$(tput sgr0)\]"
 	override_p PATH "${protonVersion}/dist/bin:${protonVersion}:${PATH}"
 	print_blink "Type 'exit' or CTRL+D to close this shell"
 	(cd "$wineprefix" && exec "$shell" --noprofile --norc )

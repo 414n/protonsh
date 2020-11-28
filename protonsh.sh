@@ -201,11 +201,9 @@ then
 	override_p STEAM_COMPAT_DATA_PATH "$wineprefix"
 	override_p SteamGameId "$appID"
 	override_p SteamAppId "$appID"
-	# STEAM_COMPAT_APP_ID is required by the soldier runtime entrypoint script
-	override_p STEAM_COMPAT_APP_ID "$appID"
 	override_p STEAM_COMPAT_CLIENT_INSTALL_PATH "$HOME/.local/share/Steam"
 	#override_p PS1 "\[$appName@$versionName\]$ "
-	override_p PS1 "\[\e[1;36m${appName}\]\[\e[0m\]\n\_\[\e[1;32m${versionName}\e[0m\] \$ "
+	override_p PS1 "\[\e[1;36m${appName}\[\e[0m\n\_\[\e[1;32m${versionName}\[\e[0m \$ "
 	override_p PATH "${protonVersion}/dist/bin:${protonVersion}:${PATH}"
 	print_blink "Type 'exit' or CTRL+D to close this shell"
 	(cd "$wineprefix" && exec "$shell" --noprofile --norc )

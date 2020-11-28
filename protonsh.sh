@@ -6,7 +6,6 @@ then
 fi
 
 shell="${SHELL:-/bin/bash}"
-STEAM_APPS_DIR="${STEAM_APPS_DIR:-$HOME/.steam/steam/SteamApps}"
 declare -a PREFIXES
 
 # $1: message
@@ -15,6 +14,35 @@ die()
 {
 	echo "$1"
 	exit "${2:-1}"
+}
+
+# Search for the SteamApps directory on the system in well-known locations,
+# such as ~/.steam/steam/.
+# If a match is found, the STEAM_APPS_DIR environment variable is set,
+# otherwise the script exits with an error.
+# If the STEAM_APPS_DIR is already set to a value, this function will exit with
+# an error.
+find_steamapps_dir()
+{
+	local result
+	if [ "$STEAM_APPS_DIR" ]
+	then
+		die "STEAM_APPS_DIR is already set to $STEAM_APPS_DIR! You should not be here!" 1
+	fi
+
+	if [ -d "$HOME/.steam" ] && [ -h "$HOME/.steam/steam" ]
+	then
+		result="$(find "$HOME/.steam/steam/" -maxdepth 1 -type d -iname steamapps)"
+	fi
+	#TODO: search in other well-known but currently unknown locations
+
+	if [ "$result" ]
+	then
+		echo "Autodetected SteamApps dir in $result"
+		export STEAM_APPS_DIR="$result"
+	else
+		die "Could not determine SteamApps dir (not found under ~/.steam/steam/). Please override STEAM_APPS_DIR before launching the script" 2
+	fi
 }
 
 # $1: appID
@@ -106,9 +134,30 @@ search_compat_tools()
 	shopt -u nullglob
 }
 
+if [ -z "$STEAM_APPS_DIR" ]
+then
+	find_steamapps_dir
+else
+	echo "Using environment override $STEAM_APPS_DIR as SteamApps dir"
+fi
+
+# Sanity checks: at this point, $STEAM_APPS_DIR should point to a valid dir...
+if [ ! -d "$STEAM_APPS_DIR" ]
+then
+	die "SteamApps dir $STEAM_APPS_DIR is not a directory!" 3
+fi
+
+# ... and it should undoubtly contain a compatdata dir...
+if temp="$(find "$STEAM_APPS_DIR" -type d -maxdepth 1 -iname compatdata)"
+then
+	STEAM_APPS_COMPATDATA_DIR="$temp"
+else
+	die "No compatdata dir found inside $STEAM_APPS_DIR!" 4
+fi
+
 echo "List of proton prefixes found in Steam:"
 I=0
-for PREFIX in "$STEAM_APPS_DIR"/compatdata/*
+for PREFIX in "$STEAM_APPS_COMPATDATA_DIR"/*
 do
 	PREFIXES[$I]="$PREFIX"
 	appID="${PREFIX##*/}"

@@ -152,6 +152,35 @@ search_compat_tools()
 	shopt -u nullglob
 }
 
+# Print Proton version used for the compatdata dir of the selected appID.
+# This is done by parsing the version from a specific line in the
+# compatdata/config_info file or, lacking that, from the compatdata/version
+# file. 
+# $1 - app compat data dir
+print_compat_proton_version()
+{
+	local compatDir="$1"
+	local default
+	# Try 1: use config_info file, if present
+	if [ -e "$compatDir/config_info" ]
+	then
+		default="$(head -n1 "$compatDir"/config_info)"
+		# default="${default##*compatibilitytools.d/}"
+		# default="${default##*common/}"
+		# default="${default%%/dist*}"
+	# Try 2: use version file, if present
+	elif [ -e "$compatDir/version" ]
+	then
+		default="$(head -n1 "$compatDir/version")"
+	fi
+	if [ "$default" ]
+	then
+		echo "$default"
+	else
+		return 1
+	fi
+}
+
 if [ -z "$STEAM_APPS_DIR" ]
 then
 	find_steamapps_dir
@@ -199,8 +228,9 @@ echo -n "Choice? "
 read -r CHOICE
 if get_menu_choice "$CHOICE" 0 "$I"
 then
-	wineprefix="${PREFIXES[$menu_choice]}/pfx"
-	appID="${PREFIXES[$menu_choice]##*/}"
+	appCompatData="${PREFIXES[$menu_choice]}"
+	wineprefix="$appCompatData/pfx"
+	appID="${appCompatData##*/}"
 	appName="$(get_appName "$appID")"
 else
 	die "Not a valid prefix choice! ($CHOICE)"
@@ -209,16 +239,37 @@ fi
 search_compat_tools
 
 echo "List of proton versions installed in Steam:"
+if ! steamSelVer="$(print_compat_proton_version "$appCompatData")"
+then
+	echo "warn: could not determine current Proton version selected in Steam for $appName ($appID)"
+fi
+steamSelStr="  <---- Steam selection"
+steamSelIdx=-1
 I=0
 for PROTON_VERSION in "${compatibilityToolsLoc[@]}"
 do
 	PROTON_VERSIONS[$I]="$PROTON_VERSION"
 	versionName="${PROTON_VERSION##*/}"
-	echo "$I) $versionName"
+	if grep -q "$steamSelVer"\$ "$PROTON_VERSION/version"
+	then
+		echo "$I) $versionName $steamSelStr"
+		steamSelIdx="$I"
+	else
+		echo "$I) $versionName"
+	fi
 	I=$((I+1))
 done
-echo -n "Choice? "
+if [ "$steamSelIdx" -gt 0 ]
+then
+	echo -n "Choice? [$steamSelIdx] "
+else
+	echo -n "Choice? "
+fi
 read -r CHOICE
+if [ -z "$CHOICE" ]
+then
+	CHOICE="$steamSelIdx"
+fi
 if get_menu_choice "$CHOICE" 0 "$I"
 then
 	protonVersion="${PROTON_VERSIONS[$menu_choice]}"

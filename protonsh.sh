@@ -193,7 +193,7 @@ do
 done
 if [ "${#removed_apps[*]}" -gt 1 ]
 then
-	echo "warn: error parsing manifest for several appIDs (${removed_apps[*]}). Did you uninstall them?"
+	echo "warn: error parsing manifest for several appIDs (${removed_apps[*]}). Leftovers prefixes after uninstall?"
 fi
 echo -n "Choice? "
 read -r CHOICE

@@ -25,6 +25,10 @@ die()
 # otherwise the script exits with an error.
 # If the STEAM_APPS_DIR is already set to a value, this function will exit with
 # an error.
+# Arguments:
+# none
+# Exported vars:
+# - STEAM_APPS_DIR, if a valid SteamApps directory is found
 find_steamapps_dir()
 {
 	local result

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -Ee
+set -o pipefail
+
 if [ -r ~/.config/protonsh ]
 then
 	source ~/.config/protonsh

@@ -178,14 +178,17 @@ I=0
 declare -a removed_apps
 for PREFIX in "$STEAM_APPS_COMPATDATA_DIR"/*
 do
-	PREFIXES[$I]="$PREFIX"
-	appID="${PREFIX##*/}"
-	if appName="$(get_appName "$appID")"
+	if [ -d "$PREFIX/pfx" ]
 	then
-		printf "%s) %s\t%s\n" "$I" "$appID" "$appName"
-		I=$((I+1))
-	else
-		removed_apps+=( "$appID" )
+		PREFIXES[$I]="$PREFIX"
+		appID="${PREFIX##*/}"
+		if appName="$(get_appName "$appID")"
+		then
+			printf "%s) %s\t%s\n" "$I" "$appID" "$appName"
+			I=$((I+1))
+		else
+			removed_apps+=( "$appID" )
+		fi
 	fi
 done
 if [ "${#removed_apps[*]}" -gt 1 ]

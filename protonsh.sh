@@ -181,6 +181,46 @@ print_compat_proton_version()
 	fi
 }
 
+# Arguments:
+# $1: proton dir
+# $2: version string to match against
+proton_version_matches()
+{
+	local proton_dir="$1"
+	local matchStr="$2"
+	local proton_version_file="$proton_dir/version"
+	local proton_proton_file="$proton_dir/proton"
+	if [ -z "$proton_dir" ]
+	then
+		die "null Proton dir supplied!"
+	fi
+	if [ -z "$matchStr" ]
+	then
+		die "no version string to match against!"
+	fi
+	if [ ! -d "$proton_dir" ]
+	then
+		die "Proton directory $proton_dir does not exist or is not a directory!"
+	fi
+	
+	# 1st try: let's match against the second field of the version file
+	if versionStr="$(awk '{print $2}' "$1/version")"
+	then
+		[ "$matchStr" = "$versionStr" ] && return 0
+	fi
+	# 2nd try: let's match against the CURRENT_PREFIX_VERSION variable value in the proton exe
+	if protonStr="$(grep CURRENT_PREFIX_VERSION= "$proton_proton_file")"
+	then
+		protonStr="${protonStr##*=}"
+		protonStr="${protonStr//\"/}"
+	# if protonStr="$(awk -F= '/CURRENT_PREFIX_VERSION=/ {gsub("\"",""); print $2}' "$proton_proton_file")"
+	# then
+		[ "$matchStr" = "$protonStr" ] && return 0
+	fi
+	# No matches T_T
+	return 1
+}
+
 if [ -z "$STEAM_APPS_DIR" ]
 then
 	find_steamapps_dir
@@ -250,7 +290,7 @@ for PROTON_VERSION in "${compatibilityToolsLoc[@]}"
 do
 	PROTON_VERSIONS[$I]="$PROTON_VERSION"
 	versionName="${PROTON_VERSION##*/}"
-	if grep -q "$steamSelVer"\$ "$PROTON_VERSION/version"
+	if [ "$steamSelVer" ] && proton_version_matches "$PROTON_VERSION" "$steamSelVer"
 	then
 		echo "$I) $versionName $steamSelStr"
 		steamSelIdx="$I"

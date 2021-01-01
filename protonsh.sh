@@ -9,7 +9,7 @@ then
 fi
 
 shell="${SHELL:-/bin/bash}"
-declare -a PREFIXES
+declare -a prefixes
 
 # $1: message
 # $2: exit code (default: 1)
@@ -152,6 +152,75 @@ search_compat_tools()
 	shopt -u nullglob
 }
 
+# Print Proton version used for the compatdata dir of the selected appID.
+# This is done by parsing the version from a specific line in the
+# compatdata/config_info file or, lacking that, from the compatdata/version
+# file. 
+# $1 - app compat data dir
+print_compat_proton_version()
+{
+	local compatDir="$1"
+	local default
+	# Try 1: use config_info file, if present
+	if [ -e "$compatDir/config_info" ]
+	then
+		default="$(head -n1 "$compatDir"/config_info)"
+		# default="${default##*compatibilitytools.d/}"
+		# default="${default##*common/}"
+		# default="${default%%/dist*}"
+	# Try 2: use version file, if present
+	elif [ -e "$compatDir/version" ]
+	then
+		default="$(head -n1 "$compatDir/version")"
+	fi
+	if [ "$default" ]
+	then
+		echo "$default"
+	else
+		return 1
+	fi
+}
+
+# Arguments:
+# $1: proton dir
+# $2: version string to match against
+proton_version_matches()
+{
+	local proton_dir="$1"
+	local matchStr="$2"
+	local proton_version_file="$proton_dir/version"
+	local proton_proton_file="$proton_dir/proton"
+	if [ -z "$proton_dir" ]
+	then
+		die "null Proton dir supplied!"
+	fi
+	if [ -z "$matchStr" ]
+	then
+		die "no version string to match against!"
+	fi
+	if [ ! -d "$proton_dir" ]
+	then
+		die "Proton directory $proton_dir does not exist or is not a directory!"
+	fi
+	
+	# 1st try: let's match against the second field of the version file
+	if versionStr="$(awk '{print $2}' "$proton_version_file")"
+	then
+		[ "$matchStr" = "$versionStr" ] && return 0
+	fi
+	# 2nd try: let's match against the CURRENT_PREFIX_VERSION variable value in the proton exe
+	if protonStr="$(grep CURRENT_PREFIX_VERSION= "$proton_proton_file")"
+	then
+		protonStr="${protonStr##*=}"
+		protonStr="${protonStr//\"/}"
+	# if protonStr="$(awk -F= '/CURRENT_PREFIX_VERSION=/ {gsub("\"",""); print $2}' "$proton_proton_file")"
+	# then
+		[ "$matchStr" = "$protonStr" ] && return 0
+	fi
+	# No matches T_T
+	return 1
+}
+
 if [ -z "$STEAM_APPS_DIR" ]
 then
 	find_steamapps_dir
@@ -176,15 +245,19 @@ fi
 echo "List of proton prefixes found in Steam:"
 I=0
 declare -a removed_apps
-for PREFIX in "$STEAM_APPS_COMPATDATA_DIR"/*
+prefixes=( "$STEAM_APPS_COMPATDATA_DIR"/* )
+prefixesLen="${#prefixes}"
+numDigit="${#prefixesLen}"
+
+for prefix in "${prefixes[@]}"
 do
-	if [ -d "$PREFIX/pfx" ]
+	if [ -d "$prefix/pfx" ]
 	then
-		PREFIXES[$I]="$PREFIX"
-		appID="${PREFIX##*/}"
+		prefixes[$I]="$prefix"
+		appID="${prefix##*/}"
 		if appName="$(get_appName "$appID")"
 		then
-			printf "%s) %s\t%s\n" "$I" "$appID" "$appName"
+			printf "%${numDigit}d) %s\t%s\n" "$I" "$appID" "$appName"
 			I=$((I+1))
 		else
 			removed_apps+=( "$appID" )
@@ -199,8 +272,9 @@ echo -n "Choice? "
 read -r CHOICE
 if get_menu_choice "$CHOICE" 0 "$I"
 then
-	wineprefix="${PREFIXES[$menu_choice]}/pfx"
-	appID="${PREFIXES[$menu_choice]##*/}"
+	appCompatData="${prefixes[$menu_choice]}"
+	wineprefix="$appCompatData/pfx"
+	appID="${appCompatData##*/}"
 	appName="$(get_appName "$appID")"
 else
 	die "Not a valid prefix choice! ($CHOICE)"
@@ -209,16 +283,37 @@ fi
 search_compat_tools
 
 echo "List of proton versions installed in Steam:"
+if ! steamSelVer="$(print_compat_proton_version "$appCompatData")"
+then
+	echo "warn: could not determine current Proton version selected in Steam for $appName ($appID)"
+fi
+steamSelStr="  <---- Steam selection"
+steamSelIdx=-1
 I=0
 for PROTON_VERSION in "${compatibilityToolsLoc[@]}"
 do
 	PROTON_VERSIONS[$I]="$PROTON_VERSION"
 	versionName="${PROTON_VERSION##*/}"
-	echo "$I) $versionName"
+	if [ "$steamSelVer" ] && proton_version_matches "$PROTON_VERSION" "$steamSelVer"
+	then
+		echo "$I) $versionName $steamSelStr"
+		steamSelIdx="$I"
+	else
+		echo "$I) $versionName"
+	fi
 	I=$((I+1))
 done
-echo -n "Choice? "
+if [ "$steamSelIdx" -gt 0 ]
+then
+	echo -n "Choice? [$steamSelIdx] "
+else
+	echo -n "Choice? "
+fi
 read -r CHOICE
+if [ -z "$CHOICE" ]
+then
+	CHOICE="$steamSelIdx"
+fi
 if get_menu_choice "$CHOICE" 0 "$I"
 then
 	protonVersion="${PROTON_VERSIONS[$menu_choice]}"

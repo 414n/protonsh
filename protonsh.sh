@@ -9,7 +9,7 @@ then
 fi
 
 shell="${SHELL:-/bin/bash}"
-declare -a PREFIXES
+declare -a prefixes
 
 # $1: message
 # $2: exit code (default: 1)
@@ -204,7 +204,7 @@ proton_version_matches()
 	fi
 	
 	# 1st try: let's match against the second field of the version file
-	if versionStr="$(awk '{print $2}' "$1/version")"
+	if versionStr="$(awk '{print $2}' "$proton_version_file")"
 	then
 		[ "$matchStr" = "$versionStr" ] && return 0
 	fi
@@ -245,15 +245,19 @@ fi
 echo "List of proton prefixes found in Steam:"
 I=0
 declare -a removed_apps
-for PREFIX in "$STEAM_APPS_COMPATDATA_DIR"/*
+prefixes=( "$STEAM_APPS_COMPATDATA_DIR"/* )
+prefixesLen="${#prefixes}"
+numDigit="${#prefixesLen}"
+
+for prefix in "${prefixes[@]}"
 do
-	if [ -d "$PREFIX/pfx" ]
+	if [ -d "$prefix/pfx" ]
 	then
-		PREFIXES[$I]="$PREFIX"
-		appID="${PREFIX##*/}"
+		prefixes[$I]="$prefix"
+		appID="${prefix##*/}"
 		if appName="$(get_appName "$appID")"
 		then
-			printf "%s) %s\t%s\n" "$I" "$appID" "$appName"
+			printf "%${numDigit}d) %s\t%s\n" "$I" "$appID" "$appName"
 			I=$((I+1))
 		else
 			removed_apps+=( "$appID" )
@@ -268,7 +272,7 @@ echo -n "Choice? "
 read -r CHOICE
 if get_menu_choice "$CHOICE" 0 "$I"
 then
-	appCompatData="${PREFIXES[$menu_choice]}"
+	appCompatData="${prefixes[$menu_choice]}"
 	wineprefix="$appCompatData/pfx"
 	appID="${appCompatData##*/}"
 	appName="$(get_appName "$appID")"

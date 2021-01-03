@@ -287,8 +287,8 @@ if ! steamSelVer="$(print_compat_proton_version "$appCompatData")"
 then
 	echo "warn: could not determine current Proton version selected in Steam for $appName ($appID)"
 fi
-steamSelStr="  <---- Steam selection"
-steamSelIdx=-1
+pfxSelStr="  <---- Prefix version detected"
+pfxSelIdx=-1
 I=0
 for PROTON_VERSION in "${compatibilityToolsLoc[@]}"
 do
@@ -296,23 +296,23 @@ do
 	versionName="${PROTON_VERSION##*/}"
 	if [ "$steamSelVer" ] && proton_version_matches "$PROTON_VERSION" "$steamSelVer"
 	then
-		echo "$I) $versionName $steamSelStr"
-		steamSelIdx="$I"
+		echo "$I) $versionName $pfxSelStr"
+		pfxSelIdx="$I"
 	else
 		echo "$I) $versionName"
 	fi
 	I=$((I+1))
 done
-if [ "$steamSelIdx" -gt 0 ]
+if [ "$pfxSelIdx" -gt 0 ]
 then
-	echo -n "Choice? [$steamSelIdx] "
+	echo -n "Choice? [$pfxSelIdx] "
 else
 	echo -n "Choice? "
 fi
 read -r CHOICE
 if [ -z "$CHOICE" ]
 then
-	CHOICE="$steamSelIdx"
+	CHOICE="$pfxSelIdx"
 fi
 if get_menu_choice "$CHOICE" 0 "$I"
 then

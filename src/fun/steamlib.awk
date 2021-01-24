@@ -1,6 +1,8 @@
 #!/usr/bin/awk -f
 # Short program to parse a single field from steam manifest files
 # (appmanifest_APPID.acf).
+# Trim functions are from Andrew R. Collins gist:
+# https://gist.github.com/andrewrcollins/1592991
 # Parameters:
 # - inputPattern: variable that holds the pattern to match in the manifest
 #	file.

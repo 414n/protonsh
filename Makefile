@@ -1,4 +1,4 @@
-.PHONY: help install uninstall test
+.PHONY: help install uninstall test run
 
 PACKAGE_BASENAME:=protonsh
 PREFIX ?= /usr
@@ -37,6 +37,8 @@ help:
 	@echo "Available targets:"
 	@echo "	install: install the script as a system binary"
 	@echo "	uninstall: remove the script from the system"
+	@echo "	test: run unit tests"
+	@echo "	run: launch the script without installing it"
 	@echo "Available variables:"
 	@echo "PREFIX: what prefix to use for the binary installation directory (default: /usr)"
 	@echo "DESTDIR: destination directory for package creation"
@@ -45,6 +47,9 @@ install: $(TARGET_BINARY) $(TARGET_STEAMLIB_SH) $(TARGET_STEAMLIB_AWK)
 
 test:
 	$(MAKE) -C src/test
+
+run:
+	STEAMLIB=$(STEAMLIB_SH) STEAMAWK=$(STEAMLIB_AWK) bash $(SOURCE_BIN)
 
 $(TARGET_BINARY): $(SOURCE_BIN)
 	install -Dm0755 $< $@

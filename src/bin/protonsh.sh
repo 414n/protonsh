@@ -102,7 +102,7 @@ done
 # ... and they should undoubtly contain a compatdata dir...
 for appDir in "${STEAMAPPS_DIRS[@]}"
 do
-	if temp="$(find "$appDir" -type d -maxdepth 1 -iname compatdata)"
+	if temp="$(find "$appDir" -maxdepth 1 -type d  -iname compatdata)"
 	then
 		STEAM_APPS_COMPATDATA_DIRS+=("$temp")
 		foundCompat=1

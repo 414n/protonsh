@@ -87,7 +87,7 @@ if [ -z "$STEAMAPPS_DIRS" ]
 then
 	steam_find_libraries
 else
-	echo "Using environment override $STEAMAPPS_DIRS as SteamApps dir"
+	echo "Using environment override ${STEAMAPPS_DIRS[*]} as SteamApps dir"
 fi
 
 # Sanity checks: at this point, $STEAMAPPS_DIRS should point to valid dirs...

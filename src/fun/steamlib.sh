@@ -49,31 +49,31 @@ steam_find_libraries()
 # 1 - if manifest file does not exist
 steam_get_appmanifest_field()
 {
-    local manifest appID fieldName
-    if [ -z "$1" ] || [ -z "$2" ]
-    then
-        return 1
-    fi
-    appID="$1"
-    fieldName="$2"
+	local manifest appID fieldName
+	if [ -z "$1" ] || [ -z "$2" ]
+	then
+		return 1
+	fi
+	appID="$1"
+	fieldName="$2"
 	if manifest="$(find "${STEAMAPPS_DIRS[@]}" -maxdepth 1 -name "appmanifest_${appID}.acf")" && [ "$manifest" ]
-    then
-        awk -f "${STEAMAWK:-/usr/share/protonsh/steamlib.awk}" -v inputPattern="\"$fieldName\"" "$manifest"
-    else
-        return 1
-    fi
-		
-		#grep -m1 "$2" \{\} | sed -ne 's/^.*"'$2'"[[:space:]]*"\([[:print:]]*\)"[[:space:]]*$/\1/p' \;
+	then
+		awk -f "${STEAMAWK:-/usr/share/protonsh/steamlib.awk}" -v inputPattern="\"$fieldName\"" "$manifest"
+	else
+		return 1
+	fi
+
+	#grep -m1 "$2" \{\} | sed -ne 's/^.*"'$2'"[[:space:]]*"\([[:print:]]*\)"[[:space:]]*$/\1/p' \;
 	# local manifest
 	# for appDir in "${STEAMAPPS_DIRS[@]}"
 	# do
-	# 	manifest="$appDir/appmanifest_${1}.acf"
-	# 	if [ -e "$manifest" ]
-	# 	then
-	# 		grep -m1 "$2" "$manifest" | sed -ne 's/^.*"'$2'"[[:space:]]*"\([[:print:]]*\)"[[:space:]]*$/\1/p'
-	# 	else
-	# 		return 1
-	# 	fi
+	#	manifest="$appDir/appmanifest_${1}.acf"
+	#	if [ -e "$manifest" ]
+	#	then
+	#		grep -m1 "$2" "$manifest" | sed -ne 's/^.*"'$2'"[[:space:]]*"\([[:print:]]*\)"[[:space:]]*$/\1/p'
+	#	else
+	#		return 1
+	#	fi
 	# done
 }
 

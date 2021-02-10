@@ -89,9 +89,9 @@ steam_search_compat_tools()
 	shopt -s nullglob
 
 	compatibilityToolsLoc=(\
-		/usr/share/steam/compatibilitytools.d/* \
-		/usr/local/share/steam/compatibilitytools.d/* \
-		"$HOME"/.steam/root/compatibilitytools.d/*
+		/usr/share/steam/compatibilitytools.d/Proton* \
+		/usr/local/share/steam/compatibilitytools.d/Proton* \
+		"$HOME"/.steam/root/compatibilitytools.d/Proton*
 	)
 	for app in "${STEAMAPPS_DIRS[@]}"
 	do

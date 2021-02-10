@@ -3,13 +3,6 @@
 set -Ee
 set -o pipefail
 
-# shellcheck source=../fun/steamlib.sh
-if ! . "${STEAMLIB:-/usr/share/protonsh/steamlib}"
-then
-	echo "Could not load steamlib functions/constants!"
-	exit 1
-fi
-
 if [ -r ~/.config/protonsh ]
 then
 	source ~/.config/protonsh
@@ -18,22 +11,63 @@ fi
 shell="${SHELL:-/bin/bash}"
 declare -a prefixes
 
-# $1: message
-# $2: exit code (default: 1)
-die()
-{
-	echo "$1"
-	exit "${2:-1}"
-}
+declare -A loglevels
+loglevels[ERROR]=0
+loglevels[WARN]=1
+loglevels[INFO]=2
+loglevels[DEBUG]=3
 
-log_dbg()
+LOGLEVEL=${LOGLEVEL:-"WARN"}
+loglevel=${loglevels[${LOGLEVEL}]}
+
+log_err()
 {
-	>&2 echo "DEBUG: $1"
+	if [ $loglevel -ge ${loglevels["ERROR"]} ]
+	then
+		_log_stmt "ERROR:" "$@"
+	fi
 }
 
 log_warn()
 {
-	>&2 echo "WARNING: $1"
+	if [ $loglevel -ge ${loglevels["WARN"]} ]
+	then
+		_log_stmt "WARN:" "$@"
+	fi
+}
+
+log_info()
+{
+	if [ $loglevel -ge ${loglevels["INFO"]} ]
+	then
+		_log_stmt "INFO:" "$@"
+	fi
+}
+
+log_dbg()
+{
+	if [ $loglevel -ge ${loglevels["DEBUG"]} ]
+	then
+		_log_stmt "DEBUG:" "$@"
+	fi
+}
+
+_log_stmt()
+{
+	local prefix fmt
+	prefix="$1"
+	fmt="$2"
+	shift 2
+	# shellcheck disable=SC2059
+	>&2 printf "$prefix $fmt\n" "$@"
+}
+
+# $1: message
+# $2: exit code (default: 1)
+die()
+{
+	log_err "$1"
+	exit "${2:-1}"
 }
 
 # $1: variable name
@@ -82,6 +116,13 @@ print_blink()
 {
 	echo -e "\e[5;93m$1\e[m"
 }
+
+# shellcheck source=../fun/steamlib.sh
+if ! . "${STEAMLIB:-/usr/share/protonsh/steamlib}"
+then
+	echo "Could not load steamlib functions/constants!"
+	exit 1
+fi
 
 if [ -z "$STEAMAPPS_DIRS" ]
 then

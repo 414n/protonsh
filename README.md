@@ -14,19 +14,27 @@ ensure that any wine-specific tooling will work on the selected Proton prefix,
 using the selected Proton version executables (`wine`/`wine64` will indeed point
 to the selected Proton version binaries).
 
-## SteamApps directory location
+## Steam library directories location
 
-All the prompts previously described are based on locating the `SteamApps`
-directory in `~/.steam/steam/SteamApps`. If this is not your case, you can
-override this by setting the `STEAM_APPS_DIR` environment variable before
-launching the script, e.g. `STEAM_APPS_DIR=/some/dir protonsh`. To make this
-permanent, you can add this line:
+All the prompts previously described are based on locating the Steam library
+directories (`SteamApps`/`steamapps`) and looking at their contents.
+This is done by looking at the default `~/.steam/steam/steamapps` location and
+at the directories pointed at by the `BaseInstallFolder` settings inside the
+`config.vdf` file.
 
-```sh
-export STEAM_APPS_DIR=/some/dir
-```
+# Local overrides
 
-to the `~/.config/protonsh` file, which will be sourced if found.
+Local environment variable overrides can be specified in the `~/.config/protonsh`
+file, that will be sourced if found.
+
+These are the available variable overrides:
+
+| Variable name | Description | Default value |
+|---------------|-------------| --------------|
+| STEAMAPPS_DIRS | Steam library directories location. Must be an array | Autodetected |
+| SHELL | the shell to launch inside a Proton prefix | `/bin/bash` |
+| LOGLEVEL | the log level of log messages. Can be `ERROR`, `WARN`, `INFO`, `DEBUG` | `WARN` |
+
 
 
 [Proton]: https://github.com/ValveSoftware/Proton
@@ -39,9 +47,9 @@ Run `make` or `make help` to see what commands/variables are currently
 supported.
 
 By issuing a `make install` command as root, the script will be put in
-`/usr/bin/protonsh`. If you'd like to change the installation prefix to
-something other than `/usr`, you can override this by overriding the `PREFIX`
-make variable, like:
+`/usr/bin/protonsh`, while accompanying scripts will be put in `/usr/libexec/protonsh`.
+If you'd like to change the installation prefix to something other than `/usr`,
+you can override this by overriding the `PREFIX` make variable, like:
 
 ```sh
 make PREFIX=/usr/local install

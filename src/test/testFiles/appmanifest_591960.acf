@@ -1,0 +1,39 @@
+"AppState"
+{
+	"appid"		"591960"
+	"Universe"		"1"
+	"name"		"Animation Throwdown: The Quest for Cards"
+	"StateFlags"		"4"
+	"installdir"		"Animation Throwdown The Quest for Cards"
+	"LastUpdated"		"1611508762"
+	"UpdateResult"		"0"
+	"SizeOnDisk"		"326965824"
+	"buildid"		"5823222"
+	"LastOwner"		"76561198028265804"
+	"BytesToDownload"		"0"
+	"BytesDownloaded"		"0"
+	"BytesToStage"		"0"
+	"BytesStaged"		"0"
+	"AutoUpdateBehavior"		"0"
+	"AllowOtherDownloadsWhileRunning"		"0"
+	"ScheduledAutoUpdate"		"0"
+	"InstalledDepots"
+	{
+		"591961"
+		{
+			"manifest"		"5706416862096852796"
+			"size"		"0"
+		}
+		"591963"
+		{
+			"manifest"		"5543016596004401866"
+			"size"		"326965824"
+		}
+	}
+	"UserConfig"
+	{
+		"language"		"english"
+		"platform_override_dest"		"linux"
+		"platform_override_source"		"windows"
+	}
+}

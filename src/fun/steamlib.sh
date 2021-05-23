@@ -58,7 +58,7 @@ steam_get_appmanifest_field()
 	fieldName="$2"
 	if manifest="$(find "${STEAMAPPS_DIRS[@]}" -maxdepth 1 -name "appmanifest_${appID}.acf")" && [ "$manifest" ]
 	then
-		awk -f "${STEAMAWK:-/usr/share/protonsh/steamlib.awk}" -v inputPattern="\"$fieldName\"" "$manifest"
+		awk -f "${STEAMAWK}" -v inputPattern="\"$fieldName\"" "$manifest"
 	else
 		return 1
 	fi

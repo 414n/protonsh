@@ -14,4 +14,3 @@ $0 ~ inputPattern {
 	gsub("\"","",$0)
 	print trim($0)
 }
-

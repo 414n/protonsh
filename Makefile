@@ -1,10 +1,12 @@
-.PHONY: help install uninstall test run
+.PHONY: help install uninstall test run clean all
 
 PACKAGE_BASENAME:=protonsh
 PREFIX ?= /usr
+BUILD_DIR ?= build
 TARGET_BINARY = $(DESTDIR)$(PREFIX)/bin/protonsh
-TARGET_STEAMLIB_SH = $(DESTDIR)$(PREFIX)/share/$(PACKAGE_BASENAME)/steamlib
-TARGET_STEAMLIB_AWK = $(DESTDIR)$(PREFIX)/share/$(PACKAGE_BASENAME)/steamlib.awk
+COMPILED_BINARY = $(BUILD_DIR)/protonsh
+COMPILED_STEAMLIB_SH = $(BUILD_DIR)/steamlib
+# TARGET_STEAMLIB_AWK = steamlib.awk
 SOURCE_BIN = src/bin/protonsh.sh
 STEAMLIB_SH = src/fun/steamlib.sh
 STEAMLIB_AWK = src/fun/steamlib.awk
@@ -35,6 +37,7 @@ endef
 
 help:
 	@echo "Available targets:"
+	@echo "	all: compile the script"
 	@echo "	install: install the script as a system binary"
 	@echo "	uninstall: remove the script from the system"
 	@echo "	test: run unit tests"
@@ -43,7 +46,9 @@ help:
 	@echo "PREFIX: what prefix to use for the binary installation directory (default: /usr)"
 	@echo "DESTDIR: destination directory for package creation"
 
-install: $(TARGET_BINARY) $(TARGET_STEAMLIB_SH) $(TARGET_STEAMLIB_AWK)
+all: $(COMPILED_BINARY)
+
+install: $(TARGET_BINARY) $(COMPILED_STEAMLIB_SH) $(TARGET_STEAMLIB_AWK)
 
 test:
 	$(MAKE) -C src/test
@@ -51,18 +56,40 @@ test:
 run:
 	STEAMLIB=$(STEAMLIB_SH) STEAMAWK=$(STEAMLIB_AWK) bash $(SOURCE_BIN)
 
-$(TARGET_BINARY): $(SOURCE_BIN)
-	install -Dm0755 $< $@
-	$(call harden_variable,STEAMLIB,$@)
+$(TARGET_BINARY): $(SOURCE_BIN) $(COMPILED_BINARY)
+	install -Dm0755 $(COMPILED_BINARY) $@
+
+$(COMPILED_BINARY): $(SOURCE_BIN) $(COMPILED_STEAMLIB_SH)
+	mkdir -p $(BUILD_DIR)
+	cp $(SOURCE_BIN) $(COMPILED_BINARY)
+	sed -i '/. "$${STEAMLIB}"/r $(COMPILED_STEAMLIB_SH)' $(COMPILED_BINARY)
+	sed -i '/. "$${STEAMLIB}"/a #EMBEDDED: $(STEAMLIB_SH)' $(COMPILED_BINARY)
+	sed -i '/. "$${STEAMLIB}"/d' $(COMPILED_BINARY)
 	$(call cleanup_shellcheck,$@)
 
-$(TARGET_STEAMLIB_SH): $(STEAMLIB_SH)
-	install -Dm0644 $< $@
-	$(call harden_variable,STEAMAWK,$@)
-	$(call cleanup_shellcheck,$@)
+$(COMPILED_STEAMLIB_SH): $(STEAMLIB_SH) $(STEAMLIB_AWK)
+	mkdir -p $(BUILD_DIR)
+	cp $(STEAMLIB_SH) $(COMPILED_STEAMLIB_SH)
+	# prepare wrapper function with heredoc...
+	sed -i '2 a #EMBEDDED: $(STEAMLIB_AWK) file\
+embedded_$(notdir STEAMLIB_AWK)()\
+{\
+	cat << \\EOF\
+EOF\
+}' $(COMPILED_STEAMLIB_SH)
+	# copy file contents from line 5 of original shell script
+	sed -i '5r $(STEAMLIB_AWK)' $(COMPILED_STEAMLIB_SH)
+	# change the line where the script was called
+	sed -i 's/\(awk.*-f \)"$${STEAMAWK}"\(.*\)$$/embedded_$(notdir STEAMLIB_AWK) | \1 - \2/g' $(COMPILED_STEAMLIB_SH)
+	# remove shebang
+	sed -i 1d $(COMPILED_STEAMLIB_SH)
+	$(call cleanup_shellcheck,$(COMPILED_STEAMLIB_SH))
 
 $(TARGET_STEAMLIB_AWK): $(STEAMLIB_AWK)
 	install -Dm0644 $< $@
+
+clean:
+	rm -rf $(BUILD_DIR)
 
 uninstall:
 	rm -f $(TARGET_BINARY)

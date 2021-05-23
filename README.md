@@ -47,7 +47,7 @@ Run `make` or `make help` to see what commands/variables are currently
 supported.
 
 By issuing a `make install` command as root, the script will be put in
-`/usr/bin/protonsh`, while accompanying scripts will be put in `/usr/libexec/protonsh`.
+`/usr/bin/protonsh`.
 If you'd like to change the installation prefix to something other than `/usr`,
 you can override this by overriding the `PREFIX` make variable, like:
 
